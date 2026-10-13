@@ -1,3 +1,6 @@
+import { exit } from "node:process";
+import { Editor } from "../app/Editor.js";
+import { CommandRunner } from "./CommandRunner.js";
 import { createInterface } from "node:readline";
 
 const reader = createInterface({
@@ -6,8 +9,9 @@ const reader = createInterface({
   prompt: "svg> ",
 });
 
-console.log("svg-editor 0.1 — type 'help' for commands");
+const runner = new CommandRunner(new Editor());
 
+console.log("svg-editor 0.1 — type 'help' for commands");
 reader.prompt();
 
 reader.on("line", (input) => {
@@ -18,10 +22,15 @@ reader.on("line", (input) => {
     return;
   }
 
-  if (command === "help") {
-    console.log("Available commands: help, exit");
-  } else if (command !== "") {
-    console.log(`error: unknown command: ${command}`);
+  if (command.startsWith("#")) {
+    reader.prompt();
+    return;
+  }
+
+  const output = runner.execute(command);
+
+  if (output !== "") {
+    console.log(output);
   }
 
   reader.prompt();
@@ -30,3 +39,4 @@ reader.on("line", (input) => {
 reader.on("close", () => {
   console.log("bye");
 });
+exit
