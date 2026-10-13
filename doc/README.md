@@ -105,6 +105,7 @@ model -> 无其他业务模块
 3. 初次编译时，TypeScript 提示缺少 Node 类型。没有通过手写 `process`、`require` 的伪声明绕过错误，而是启用 `tsconfig.json` 中的 `"types": ["node"]`，保留真实类型检查。
 4. TypeScript 严格模式发现命令参数数组下标可能不存在。随后在 `CommandRunner` 中显式验证命令参数数量和 `undefined` 情况，使错误输入不会改变文档状态。
 5. 在本机终端中，`readline.close()` 未能按预期结束 CLI。经手工验证后，退出命令改为打印 `bye` 并显式结束进程。
+6. 初次测试文件被误放在 `src/`，导致 TypeScript 将测试编译到 `dist/`，Vitest 因此重复执行测试。随后将测试移动到 `test/`，清理可再生的 `dist/` 目录，并确认测试只执行一次。
 
 ## 一致性自查
 
@@ -129,7 +130,8 @@ model -> 无其他业务模块
 当前已完成的保障：
 
 - `npm run build` 使用 TypeScript 严格检查并已通过。
-- 手工验证了 `init`、`canvas`、无文档错误、错误参数和 `#` 注释行。
+- Vitest 已覆盖 `Rect` 的 SVG 序列化、移动与缩放、允许属性修改和未知属性报错，共 3 个自动化测试。
+- 手工验证了 `init`、`canvas`、无文档错误、错误参数、`#` 注释行和 `exit`。
 - 每个阶段都使用 Git 小步提交并推送远程仓库。
 
 后续保障措施：
