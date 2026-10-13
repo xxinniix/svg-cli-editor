@@ -106,6 +106,7 @@ model -> 无其他业务模块
 4. TypeScript 严格模式发现命令参数数组下标可能不存在。随后在 `CommandRunner` 中显式验证命令参数数量和 `undefined` 情况，使错误输入不会改变文档状态。
 5. 在本机终端中，`readline.close()` 未能按预期结束 CLI。经手工验证后，退出命令改为打印 `bye` 并显式结束进程。
 6. 初次测试文件被误放在 `src/`，导致 TypeScript 将测试编译到 `dist/`，Vitest 因此重复执行测试。随后将测试移动到 `test/`，清理可再生的 `dist/` 目录，并确认测试只执行一次。
+7. 正式构建只编译 `src/`，因此为 `test/` 新增了 `tsconfig.test.json`。这既保持发布产物不包含测试，又让编辑器与命令行能对测试代码执行类型检查。
 
 ## 一致性自查
 
@@ -130,7 +131,8 @@ model -> 无其他业务模块
 当前已完成的保障：
 
 - `npm run build` 使用 TypeScript 严格检查并已通过。
-- Vitest 已覆盖 `Rect` 和 `Circle` 的 SVG 序列化、移动与缩放、允许属性修改和未知属性报错，共 6 个自动化测试。
+- Vitest 已覆盖 `Rect`、`Circle`、`Ellipse` 和 `Line` 的 SVG 序列化、移动与缩放、允许属性修改和未知属性报错，共 12 个自动化测试。
+- `tsconfig.test.json` 会对 `src/` 与 `test/` 一起进行独立类型检查，避免编辑器遗漏测试代码中的导入错误。
 - 手工验证了 `init`、`canvas`、无文档错误、错误参数、`#` 注释行和 `exit`。
 - 每个阶段都使用 Git 小步提交并推送远程仓库。
 
