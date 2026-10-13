@@ -17,10 +17,10 @@ reader.prompt();
 reader.on("line", (input) => {
   const command = input.trim();
 
-  if (command === "exit" || command === "quit") {
-    reader.close();
-    return;
-  }
+ if (command === "exit" || command === "quit") {
+  console.log("bye");
+  exit(0);
+}
 
   if (command.startsWith("#")) {
     reader.prompt();
@@ -36,7 +36,5 @@ reader.on("line", (input) => {
   reader.prompt();
 });
 
-reader.on("close", () => {
-  console.log("bye");
-});
+
 exit
