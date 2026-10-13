@@ -1,6 +1,9 @@
 import { Shape } from "./Shape.js";
 
 export class Group extends Shape {
+      public constructor(id: string, fill?: string) {
+    super(id, fill);
+  }
   private readonly children: Shape[] = [];
 
   public getType(): string {
