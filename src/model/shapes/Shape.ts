@@ -1,7 +1,10 @@
+import type { Group } from "./Group.js";
+
 export abstract class Shape {
   private fill: string | undefined;
   private stroke: string | undefined;
   private strokeWidth: number | undefined;
+  private parent: Group | null = null;
 
   protected constructor(
     private readonly id: string,
@@ -16,6 +19,14 @@ export abstract class Shape {
 
   public getId(): string {
     return this.id;
+  }
+
+  public getParent(): Group | null {
+    return this.parent;
+  }
+
+  public setParent(parent: Group | null): void {
+    this.parent = parent;
   }
 
   public abstract getType(): string;
