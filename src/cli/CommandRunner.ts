@@ -12,6 +12,7 @@ export class CommandRunner {
     this.handlers.set("create", (args) => this.handleCreate(args));
     this.handlers.set("delete", (args) => this.handleDelete(args));
     this.handlers.set("set", (args) => this.handleSet(args));
+    this.handlers.set("addto", (args) => this.handleAddTo(args));
     this.handlers.set("move", (args) => this.handleMove(args));
     this.handlers.set("scale", (args) => this.handleScale(args));
     this.handlers.set("show", (args) => this.handleShow(args));
@@ -162,6 +163,20 @@ export class CommandRunner {
 
     return this.editor.setShapeAttribute(id, attribute, value);
   }
+  private handleAddTo(args: string[]): string {
+    const id = args[0];
+    const groupId = args[1];
+
+    if (
+      args.length !== 2 ||
+      id === undefined ||
+      groupId === undefined
+    ) {
+      throw new Error("usage: addto <id> <groupId>");
+    }
+
+    return this.editor.addShapeToGroup(id, groupId);
+  }
 
   private handleShow(args: string[]): string {
     if (args.length !== 0) {
@@ -268,6 +283,7 @@ export class CommandRunner {
       "  create <type> <id> <parameters...> [attribute=value ...]",
       "  delete <id>",
       "  set <id> <attribute> <value>",
+      "  addto <id> <groupId>",
       "  move <id> <dx> <dy>",
       "  scale <id> <factor>",
       "  show",
