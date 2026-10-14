@@ -44,6 +44,32 @@ export class Line extends Shape {
     this.y2 *= factor;
   }
 
+  public getAttribute(attribute: string): string | undefined {
+    const commonValue = this.getCommonAttribute(attribute);
+
+    if (commonValue !== null) {
+      return commonValue;
+    }
+
+    if (attribute === "x1") {
+      return String(this.x1);
+    }
+
+    if (attribute === "y1") {
+      return String(this.y1);
+    }
+
+    if (attribute === "x2") {
+      return String(this.x2);
+    }
+
+    if (attribute === "y2") {
+      return String(this.y2);
+    }
+
+    throw new Error(`unknown attribute: ${attribute}`);
+  }
+
   public setAttribute(attribute: string, value: string): void {
     if (this.setCommonAttribute(attribute, value)) {
       return;

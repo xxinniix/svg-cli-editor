@@ -45,6 +45,8 @@ describe("SvgDocument", () => {
   it("writes a standards-compliant viewBox", () => {
     const document = new SvgDocument(300, 200);
 
-    expect(document.toSvg()).toContain('viewBox="0 0 300 200"');
+       expect(document.toSvg()).toContain(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200">',
+    );
   });
 });

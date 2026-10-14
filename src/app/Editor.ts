@@ -6,6 +6,7 @@ import { ShapeFactory } from "../model/ShapeFactory.js";
 import { SvgDocument } from "../model/SvgDocument.js";
 import type { Shape } from "../model/shapes/Shape.js";
 import { DeleteShapeCommand } from "../commands/DeleteShapeCommand.js";
+import { SetAttributeCommand } from "../commands/SetAttributeCommand.js";
 
 export class Editor {
   private document: SvgDocument | null = null;
@@ -64,6 +65,16 @@ export class Editor {
     const document = this.getDocument();
     this.history.execute(new DeleteShapeCommand(document, id));
     return `deleted ${id}`;
+  }
+
+    public setShapeAttribute(
+    id: string,
+    attribute: string,
+    value: string,
+  ): string {
+    const shape = this.getShape(id);
+    this.history.execute(new SetAttributeCommand(shape, attribute, value));
+    return `set ${id} ${attribute}=${value}`;
   }
 
   public undo(): string {

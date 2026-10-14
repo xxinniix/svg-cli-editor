@@ -35,6 +35,27 @@ export class Circle extends Shape {
     this.radius *= factor;
   }
 
+    public getAttribute(attribute: string): string | undefined {
+    const commonValue = this.getCommonAttribute(attribute);
+
+    if (commonValue !== null) {
+      return commonValue;
+    }
+
+    if (attribute === "cx") {
+      return String(this.cx);
+    }
+
+    if (attribute === "cy") {
+      return String(this.cy);
+    }
+
+    if (attribute === "r") {
+      return String(this.radius);
+    }
+
+    throw new Error(`unknown attribute: ${attribute}`);
+  }
   public setAttribute(attribute: string, value: string): void {
     if (this.setCommonAttribute(attribute, value)) {
       return;

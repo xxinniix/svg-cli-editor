@@ -35,7 +35,21 @@ export abstract class Shape {
 
   public abstract scale(factor: number): void;
 
+  public abstract getAttribute(attribute: string): string | undefined;
+
   public abstract setAttribute(attribute: string, value: string): void;
+
+  public restoreAttribute(attribute: string, value: string | undefined): void {
+    if (this.restoreCommonAttribute(attribute, value)) {
+      return;
+    }
+
+    if (value === undefined) {
+      throw new Error(`cannot clear required attribute: ${attribute}`);
+    }
+
+    this.setAttribute(attribute, value);
+  }
 
   public abstract toSvg(): string;
 
@@ -53,6 +67,51 @@ export abstract class Shape {
     }
 
     if (attribute === "stroke-width") {
+      const width = Number(value);
+      this.requirePositive(width, "stroke-width");
+      this.strokeWidth = width;
+      return true;
+    }
+
+    return false;
+  }
+
+  protected getCommonAttribute(attribute: string): string | undefined | null {
+    if (attribute === "fill") {
+      return this.fill;
+    }
+
+    if (attribute === "stroke") {
+      return this.stroke;
+    }
+
+    if (attribute === "stroke-width") {
+      return this.strokeWidth === undefined ? undefined : String(this.strokeWidth);
+    }
+
+    return null;
+  }
+
+  protected restoreCommonAttribute(
+    attribute: string,
+    value: string | undefined,
+  ): boolean {
+    if (attribute === "fill") {
+      this.fill = value;
+      return true;
+    }
+
+    if (attribute === "stroke") {
+      this.stroke = value;
+      return true;
+    }
+
+    if (attribute === "stroke-width") {
+      if (value === undefined) {
+        this.strokeWidth = undefined;
+        return true;
+      }
+
       const width = Number(value);
       this.requirePositive(width, "stroke-width");
       this.strokeWidth = width;

@@ -33,6 +33,28 @@ export class Text extends Shape {
     this.y *= factor;
   }
 
+  public getAttribute(attribute: string): string | undefined {
+    const commonValue = this.getCommonAttribute(attribute);
+
+    if (commonValue !== null) {
+      return commonValue;
+    }
+
+    if (attribute === "x") {
+      return String(this.x);
+    }
+
+    if (attribute === "y") {
+      return String(this.y);
+    }
+
+    if (attribute === "text") {
+      return this.content;
+    }
+
+    throw new Error(`unknown attribute: ${attribute}`);
+  }
+
   public setAttribute(attribute: string, value: string): void {
     if (this.setCommonAttribute(attribute, value)) {
       return;
