@@ -32,6 +32,36 @@ export class SvgDocument {
     return [...this.rootShapes];
   }
 
+    public getRootShapeIndex(shape: Shape): number {
+    return this.rootShapes.indexOf(shape);
+  }
+
+  public restoreShape(
+    shape: Shape,
+    parent: Group | null,
+    index: number,
+  ): void {
+    if (this.findShape(shape.getId()) !== undefined) {
+      throw new Error(`id already exists: ${shape.getId()}`);
+    }
+
+    if (parent !== null) {
+      if (!this.isManagedShape(parent)) {
+        throw new Error(`no such container: ${parent.getId()}`);
+      }
+
+      parent.insertChild(shape, index);
+      return;
+    }
+
+    if (!Number.isInteger(index) || index < 0 || index > this.rootShapes.length) {
+      throw new Error("root insertion index is out of range");
+    }
+
+    this.rootShapes.splice(index, 0, shape);
+    shape.setParent(null);
+  }
+
   public getShapeCount(): number {
     return this.rootShapes.reduce((count, shape) => {
       return count + this.countShapeTree(shape);

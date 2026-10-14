@@ -5,6 +5,7 @@ import { ScaleCommand } from "../commands/ScaleCommand.js";
 import { ShapeFactory } from "../model/ShapeFactory.js";
 import { SvgDocument } from "../model/SvgDocument.js";
 import type { Shape } from "../model/shapes/Shape.js";
+import { DeleteShapeCommand } from "../commands/DeleteShapeCommand.js";
 
 export class Editor {
   private document: SvgDocument | null = null;
@@ -57,6 +58,12 @@ export class Editor {
     const shape = this.getShape(id);
     this.history.execute(new ScaleCommand(shape, factor));
     return `scaled ${id} by ${factor}`;
+  }
+
+    public deleteShape(id: string): string {
+    const document = this.getDocument();
+    this.history.execute(new DeleteShapeCommand(document, id));
+    return `deleted ${id}`;
   }
 
   public undo(): string {

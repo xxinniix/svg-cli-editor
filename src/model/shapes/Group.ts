@@ -1,10 +1,11 @@
 import { Shape } from "./Shape.js";
 
 export class Group extends Shape {
-      public constructor(id: string, fill?: string) {
+  private readonly children: Shape[] = [];
+
+  public constructor(id: string, fill?: string) {
     super(id, fill);
   }
-  private readonly children: Shape[] = [];
 
   public getType(): string {
     return "g";
@@ -15,6 +16,14 @@ export class Group extends Shape {
   }
 
   public addChild(child: Shape): void {
+    this.insertChild(child, this.children.length);
+  }
+
+  public insertChild(child: Shape, index: number): void {
+    if (!Number.isInteger(index) || index < 0 || index > this.children.length) {
+      throw new Error("child insertion index is out of range");
+    }
+
     if (child === this) {
       throw new Error("a group cannot contain itself");
     }
@@ -29,7 +38,7 @@ export class Group extends Shape {
       previousParent.removeChild(child);
     }
 
-    this.children.push(child);
+    this.children.splice(index, 0, child);
     child.setParent(this);
   }
 

@@ -10,6 +10,7 @@ export class CommandRunner {
     this.handlers.set("init", (args) => this.handleInit(args));
     this.handlers.set("canvas", (args) => this.handleCanvas(args));
     this.handlers.set("create", (args) => this.handleCreate(args));
+        this.handlers.set("delete", (args) => this.handleDelete(args));
     this.handlers.set("move", (args) => this.handleMove(args));
     this.handlers.set("scale", (args) => this.handleScale(args));
     this.handlers.set("show", (args) => this.handleShow(args));
@@ -134,6 +135,16 @@ export class CommandRunner {
     );
   }
 
+    private handleDelete(args: string[]): string {
+    const id = args[0];
+
+    if (args.length !== 1 || id === undefined) {
+      throw new Error("usage: delete <id>");
+    }
+
+    return this.editor.deleteShape(id);
+  }
+
   private handleShow(args: string[]): string {
     if (args.length !== 0) {
       throw new Error("usage: show");
@@ -237,6 +248,7 @@ export class CommandRunner {
       "  init [width] [height]",
       "  canvas [width] [height]",
       "  create <type> <id> <parameters...> [attribute=value ...]",
+      "  delete <id>",
       "  move <id> <dx> <dy>",
       "  scale <id> <factor>",
       "  show",
