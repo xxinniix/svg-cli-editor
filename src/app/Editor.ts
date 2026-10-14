@@ -8,6 +8,7 @@ import type { Shape } from "../model/shapes/Shape.js";
 import { DeleteShapeCommand } from "../commands/DeleteShapeCommand.js";
 import { SetAttributeCommand } from "../commands/SetAttributeCommand.js";
 import { MoveToGroupCommand } from "../commands/MoveToGroupCommand.js";
+import { GroupShapesCommand } from "../commands/GroupShapesCommand.js";
 
 export class Editor {
   private document: SvgDocument | null = null;
@@ -81,6 +82,13 @@ export class Editor {
     const document = this.getDocument();
     this.history.execute(new MoveToGroupCommand(document, id, groupId));
     return `added ${id} to ${groupId}`;
+  }
+    public groupShapes(groupId: string, shapeIds: readonly string[]): string {
+    const document = this.getDocument();
+    this.history.execute(
+      new GroupShapesCommand(document, groupId, shapeIds),
+    );
+    return `grouped ${shapeIds.length} shape(s) as ${groupId}`;
   }
 
   public undo(): string {

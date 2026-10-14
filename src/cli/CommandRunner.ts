@@ -13,6 +13,7 @@ export class CommandRunner {
     this.handlers.set("delete", (args) => this.handleDelete(args));
     this.handlers.set("set", (args) => this.handleSet(args));
     this.handlers.set("addto", (args) => this.handleAddTo(args));
+    this.handlers.set("group", (args) => this.handleGroup(args));
     this.handlers.set("move", (args) => this.handleMove(args));
     this.handlers.set("scale", (args) => this.handleScale(args));
     this.handlers.set("show", (args) => this.handleShow(args));
@@ -177,6 +178,16 @@ export class CommandRunner {
 
     return this.editor.addShapeToGroup(id, groupId);
   }
+    private handleGroup(args: string[]): string {
+    const groupId = args[0];
+    const shapeIds = args.slice(1);
+
+    if (groupId === undefined || shapeIds.length === 0) {
+      throw new Error("usage: group <newGroupId> <id...>");
+    }
+
+    return this.editor.groupShapes(groupId, shapeIds);
+  }
 
   private handleShow(args: string[]): string {
     if (args.length !== 0) {
@@ -283,6 +294,7 @@ export class CommandRunner {
       "  create <type> <id> <parameters...> [attribute=value ...]",
       "  delete <id>",
       "  set <id> <attribute> <value>",
+      "  group <newGroupId> <id...>",
       "  addto <id> <groupId>",
       "  move <id> <dx> <dy>",
       "  scale <id> <factor>",
