@@ -7,6 +7,26 @@ import { Shape } from "./shapes/Shape.js";
 import { Text } from "./shapes/Text.js";
 
 export class ShapeFactory {
+    public getParameterCount(type: string): number {
+    switch (type) {
+      case "rect":
+      case "ellipse":
+      case "line":
+        return 4;
+
+      case "circle":
+        return 3;
+
+      case "text":
+        return 3;
+
+      case "g":
+        return 0;
+
+      default:
+        throw new Error(`unknown shape type: ${type}`);
+    }
+  }
   public create(type: string, id: string, parameters: readonly string[]): Shape {
     switch (type) {
       case "rect":
