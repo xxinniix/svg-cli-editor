@@ -10,7 +10,11 @@ export class CommandRunner {
     this.handlers.set("init", (args) => this.handleInit(args));
     this.handlers.set("canvas", (args) => this.handleCanvas(args));
     this.handlers.set("create", (args) => this.handleCreate(args));
+    this.handlers.set("move", (args) => this.handleMove(args));
+    this.handlers.set("scale", (args) => this.handleScale(args));
     this.handlers.set("show", (args) => this.handleShow(args));
+    this.handlers.set("undo", (args) => this.handleUndo(args));
+    this.handlers.set("redo", (args) => this.handleRedo(args));
   }
 
   public execute(input: string): string {
@@ -91,6 +95,45 @@ export class CommandRunner {
     return this.editor.createShape(type, id, args.slice(2));
   }
 
+  private handleMove(args: string[]): string {
+    const id = args[0];
+    const dxText = args[1];
+    const dyText = args[2];
+
+    if (
+      args.length !== 3 ||
+      id === undefined ||
+      dxText === undefined ||
+      dyText === undefined
+    ) {
+      throw new Error("usage: move <id> <dx> <dy>");
+    }
+
+    return this.editor.moveShape(
+      id,
+      this.parseFiniteNumber(dxText, "dx"),
+      this.parseFiniteNumber(dyText, "dy"),
+    );
+  }
+
+  private handleScale(args: string[]): string {
+    const id = args[0];
+    const factorText = args[1];
+
+    if (
+      args.length !== 2 ||
+      id === undefined ||
+      factorText === undefined
+    ) {
+      throw new Error("usage: scale <id> <factor>");
+    }
+
+    return this.editor.scaleShape(
+      id,
+      this.parseFiniteNumber(factorText, "scale factor"),
+    );
+  }
+
   private handleShow(args: string[]): string {
     if (args.length !== 0) {
       throw new Error("usage: show");
@@ -99,11 +142,37 @@ export class CommandRunner {
     return this.editor.showSvg();
   }
 
+  private handleUndo(args: string[]): string {
+    if (args.length !== 0) {
+      throw new Error("usage: undo");
+    }
+
+    return this.editor.undo();
+  }
+
+  private handleRedo(args: string[]): string {
+    if (args.length !== 0) {
+      throw new Error("usage: redo");
+    }
+
+    return this.editor.redo();
+  }
+
   private parseDimension(value: string): number {
     const parsed = Number(value);
 
     if (!Number.isFinite(parsed) || parsed <= 0) {
       throw new Error("canvas dimensions must be positive numbers");
+    }
+
+    return parsed;
+  }
+
+  private parseFiniteNumber(value: string, name: string): number {
+    const parsed = Number(value);
+
+    if (!Number.isFinite(parsed)) {
+      throw new Error(`${name} must be a finite number`);
     }
 
     return parsed;
@@ -168,7 +237,11 @@ export class CommandRunner {
       "  init [width] [height]",
       "  canvas [width] [height]",
       "  create <type> <id> <parameters...> [attribute=value ...]",
+      "  move <id> <dx> <dy>",
+      "  scale <id> <factor>",
       "  show",
+      "  undo",
+      "  redo",
       "  help",
       "  exit",
     ].join("\n");

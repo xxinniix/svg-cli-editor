@@ -1,12 +1,19 @@
+import { CommandHistory } from "../commands/CommandHistory.js";
+import { CreateShapeCommand } from "../commands/CreateShapeCommand.js";
+import { MoveCommand } from "../commands/MoveCommand.js";
+import { ScaleCommand } from "../commands/ScaleCommand.js";
 import { ShapeFactory } from "../model/ShapeFactory.js";
 import { SvgDocument } from "../model/SvgDocument.js";
+import type { Shape } from "../model/shapes/Shape.js";
 
 export class Editor {
   private document: SvgDocument | null = null;
+  private history = new CommandHistory();
   private readonly shapeFactory = new ShapeFactory();
 
   public initialize(width = 800, height = 600): string {
     this.document = new SvgDocument(width, height);
+    this.history = new CommandHistory();
     return `canvas ${width}x${height} created`;
   }
 
@@ -36,27 +43,63 @@ export class Editor {
       this.applyAttribute(shape, token);
     }
 
-    document.addShape(shape);
+    this.history.execute(new CreateShapeCommand(document, shape));
     return `created ${shape.getType()}#${shape.getId()}`;
+  }
+
+  public moveShape(id: string, dx: number, dy: number): string {
+    const shape = this.getShape(id);
+    this.history.execute(new MoveCommand(shape, dx, dy));
+    return `moved ${id} by (${dx}, ${dy})`;
+  }
+
+  public scaleShape(id: string, factor: number): string {
+    const shape = this.getShape(id);
+    this.history.execute(new ScaleCommand(shape, factor));
+    return `scaled ${id} by ${factor}`;
+  }
+
+  public undo(): string {
+    if (!this.history.undo()) {
+      throw new Error("nothing to undo");
+    }
+
+    return "undid last command";
+  }
+
+  public redo(): string {
+    if (!this.history.redo()) {
+      throw new Error("nothing to redo");
+    }
+
+    return "redid last command";
   }
 
   public showSvg(): string {
     return this.getDocument().toSvg();
   }
 
-  private applyAttribute(
-    shape: ReturnType<ShapeFactory["create"]>,
-    token: string,
-  ): void {
+  private applyAttribute(shape: Shape, token: string): void {
     const equalsIndex = token.indexOf("=");
 
     if (equalsIndex <= 0 || equalsIndex === token.length - 1) {
       throw new Error("attributes must use name=value");
     }
 
-    const attribute = token.slice(0, equalsIndex);
-    const value = token.slice(equalsIndex + 1);
-    shape.setAttribute(attribute, value);
+    shape.setAttribute(
+      token.slice(0, equalsIndex),
+      token.slice(equalsIndex + 1),
+    );
+  }
+
+  private getShape(id: string): Shape {
+    const shape = this.getDocument().findShape(id);
+
+    if (shape === undefined) {
+      throw new Error(`no such shape: ${id}`);
+    }
+
+    return shape;
   }
 
   private getDocument(): SvgDocument {

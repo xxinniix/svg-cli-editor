@@ -112,6 +112,7 @@ model -> 无其他业务模块
 10. 实现 `SvgDocument` 的顶层图形树管理：支持添加、按 ID 查找和删除图形，检查全局 ID 唯一性，并将画布及图形树序列化为完整 SVG。为嵌套分组、重复 ID、删除和 SVG 输出添加自动化测试。
 11. 在模型层加入 `ShapeFactory`，将图形名称到具体图形类的创建分派集中在唯一位置。测试覆盖了全部支持的图形类型、文字内容、未知类型、参数数量和非法数字的报错。
 12. 将 `ShapeFactory` 接入 CLI，实现 `create` 与 `show` 命令，并加入带引号文本解析和 `name=value` 属性解析。手工验证了 SVG 输出，以及错误属性不会改变已有文档状态。
+13. 引入 Command 模式：使用 `EditorCommand`、`CommandHistory` 和具体的创建、移动、缩放命令实现撤销与重做。执行新命令会清空重做记录，重新初始化画布会清空历史记录，并通过自动化测试和手工命令行验证状态恢复。
 
 ## 一致性自查
 
@@ -136,9 +137,9 @@ model -> 无其他业务模块
 当前已完成的保障：
 
 - `npm run build` 使用 TypeScript 严格检查并已通过。
-- Vitest 已覆盖 5 种基础图形、组合图形 `Group`、`SvgDocument` 和 `ShapeFactory` 的 SVG 序列化、移动缩放、属性校验、嵌套结构、全局 ID 唯一性、删除、图形创建与错误处理，共 24 个自动化测试。
+- Vitest 已覆盖 5 种基础图形、组合图形 `Group`、`SvgDocument`、`ShapeFactory`、CLI 命令和 Command 模式的 SVG 序列化、移动缩放、属性校验、嵌套结构、全局 ID 唯一性、删除、图形创建、带引号文本、SVG 显示、撤销重做与错误处理，共 30 个自动化测试。
 - `tsconfig.test.json` 会对 `src/` 与 `test/` 一起进行独立类型检查，避免编辑器遗漏测试代码中的导入错误。
-- 手工验证了 `init`、`canvas`、`create`、带引号文本、属性格式错误不改变文档、`show`、无文档错误、错误参数、`#` 注释行和 `exit`。
+- 手工验证了 `init`、`canvas`、`create`、带引号文本、属性格式错误不改变文档、`show`、`move`、`scale`、`undo`、`redo`、无文档错误、错误参数、`#` 注释行和 `exit`。
 - 每个阶段都使用 Git 小步提交并推送远程仓库。
 
 后续保障措施：
