@@ -9,6 +9,7 @@ import { DeleteShapeCommand } from "../commands/DeleteShapeCommand.js";
 import { SetAttributeCommand } from "../commands/SetAttributeCommand.js";
 import { MoveToGroupCommand } from "../commands/MoveToGroupCommand.js";
 import { GroupShapesCommand } from "../commands/GroupShapesCommand.js";
+import { UngroupCommand } from "../commands/UngroupCommand.js";
 
 export class Editor {
   private document: SvgDocument | null = null;
@@ -89,6 +90,11 @@ export class Editor {
       new GroupShapesCommand(document, groupId, shapeIds),
     );
     return `grouped ${shapeIds.length} shape(s) as ${groupId}`;
+  }
+    public ungroupShape(groupId: string): string {
+    const document = this.getDocument();
+    this.history.execute(new UngroupCommand(document, groupId));
+    return `ungrouped ${groupId}`;
   }
 
   public undo(): string {
