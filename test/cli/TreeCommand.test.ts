@@ -9,7 +9,7 @@ describe("tree command", () => {
     runner.execute("init 300 200");
     runner.execute("create g g1");
     runner.execute("create rect r1 10 20 30 40");
-    runner.execute("addto r1 g1");
+    runner.execute("addto g1 r1");
 
     expect(runner.execute("tree")).toBe(
       [
@@ -36,6 +36,20 @@ describe("tree command", () => {
     );
 
     runner.execute("init");
-    expect(runner.execute("tree extra")).toBe("error: usage: tree");
+    expect(runner.execute("tree missing")).toBe("error: no such shape: missing");
+    expect(runner.execute("tree one two")).toBe("error: usage: tree [id]");
+  });
+
+  it("shows one selected subtree", () => {
+    const runner = new CommandRunner(new Editor());
+
+    runner.execute("init");
+    runner.execute("create g g1");
+    runner.execute("create rect r1 10 20 30 40 in g1");
+
+    expect(runner.execute("tree g1")).toBe([
+      "g#g1",
+      "  rect#r1 x=10 y=20 w=30 h=40",
+    ].join("\n"));
   });
 });

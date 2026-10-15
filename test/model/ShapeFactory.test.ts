@@ -36,7 +36,7 @@ describe("ShapeFactory", () => {
     const factory = new ShapeFactory();
 
     expect(() => factory.create("polygon", "p1", [])).toThrow(
-      "unknown shape type: polygon",
+      "unknown shape type: polygon (is the plugin loaded?)",
     );
     expect(() => factory.create("rect", "r1", ["1", "2", "3"])).toThrow(
       "rect expects 4 parameter(s), received 3",

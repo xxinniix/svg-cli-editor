@@ -24,11 +24,11 @@ export class MoveToGroupCommand implements EditorCommand {
     const target = this.document.findShape(this.groupId);
 
     if (target === undefined) {
-      throw new Error(`no such shape: ${this.groupId}`);
+      throw new Error(`no such container: ${this.groupId}`);
     }
 
     if (!(target instanceof Group)) {
-      throw new Error(`target is not a group: ${this.groupId}`);
+      throw new Error(`not a container: ${this.groupId}`);
     }
 
     if (shape === target) {

@@ -41,7 +41,9 @@ describe("read command", () => {
       expect(runner.execute("show")).toContain(
         '<circle id="c1" cx="100" cy="80" r="20" fill="blue"/>',
       );
-      expect(runner.execute("undo")).toBe("error: nothing to undo");
+      expect(runner.execute("undo")).toBe(
+        "error: undo not allowed after io command",
+      );
     } finally {
       rmSync(temporary.directory, { recursive: true, force: true });
     }
@@ -59,7 +61,7 @@ describe("read command", () => {
 
       expect(runner.execute(`read ${temporary.filePath}`)).toBe([
         `loaded ${temporary.filePath}`,
-        "warning: missing id on <rect>; assigned rect-1",
+        "warning: assigned id rect1 to unnamed <rect>",
       ].join("\n"));
     } finally {
       rmSync(temporary.directory, { recursive: true, force: true });

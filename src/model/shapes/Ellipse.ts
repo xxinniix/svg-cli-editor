@@ -46,19 +46,19 @@ export class Ellipse extends Shape {
     }
 
     if (attribute === "cx") {
-      return String(this.cx);
+      return this.formatNumber(this.cx);
     }
 
     if (attribute === "cy") {
-      return String(this.cy);
+      return this.formatNumber(this.cy);
     }
 
     if (attribute === "rx") {
-      return String(this.rx);
+      return this.formatNumber(this.rx);
     }
 
     if (attribute === "ry") {
-      return String(this.ry);
+      return this.formatNumber(this.ry);
     }
 
     throw new Error(`unknown attribute: ${attribute}`);
@@ -94,20 +94,20 @@ export class Ellipse extends Shape {
   public toSvg(): string {
     return [
       `<ellipse id="${this.escapeXml(this.getId())}"`,
-      `cx="${this.cx}"`,
-      `cy="${this.cy}"`,
-      `rx="${this.rx}"`,
-      `ry="${this.ry}"${this.getSvgStyleAttributes()}/>`,
+      `cx="${this.formatNumber(this.cx)}"`,
+      `cy="${this.formatNumber(this.cy)}"`,
+      `rx="${this.formatNumber(this.rx)}"`,
+      `ry="${this.formatNumber(this.ry)}"${this.getSvgStyleAttributes()}/>`,
     ].join(" ");
   }
 
   public describe(): string {
     return [
       `ellipse#${this.getId()}`,
-      `cx=${this.cx}`,
-      `cy=${this.cy}`,
-      `rx=${this.rx}`,
-      `ry=${this.ry}${this.getStyleDescription()}`,
+      `cx=${this.formatNumber(this.cx)}`,
+      `cy=${this.formatNumber(this.cy)}`,
+      `rx=${this.formatNumber(this.rx)}`,
+      `ry=${this.formatNumber(this.ry)}${this.getStyleDescription()}`,
     ].join(" ");
   }
 

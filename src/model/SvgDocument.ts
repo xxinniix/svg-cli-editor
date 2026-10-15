@@ -32,7 +32,7 @@ export class SvgDocument {
     return [...this.rootShapes];
   }
 
-    public getRootShapeIndex(shape: Shape): number {
+  public getRootShapeIndex(shape: Shape): number {
     return this.rootShapes.indexOf(shape);
   }
 
@@ -134,7 +134,19 @@ export class SvgDocument {
     lines.push("</svg>");
     return lines.join("\n");
   }
-    public describeTree(): string {
+  public describeTree(rootId?: string): string {
+    if (rootId !== undefined) {
+      const root = this.findShape(rootId);
+
+      if (root === undefined) {
+        throw new Error(`no such shape: ${rootId}`);
+      }
+
+      const lines: string[] = [];
+      this.appendTree(lines, root, 0);
+      return lines.join("\n");
+    }
+
     const lines = [`svg ${this.width}x${this.height}`];
 
     for (const shape of this.rootShapes) {
@@ -144,7 +156,26 @@ export class SvgDocument {
     return lines.join("\n");
   }
 
-    private appendTree(lines: string[], shape: Shape, depth: number): void {
+  public describeShape(id: string): string {
+    const shape = this.findShape(id);
+
+    if (shape === undefined) {
+      throw new Error(`no such shape: ${id}`);
+    }
+
+    const parent = shape.getParent();
+    const parentDescription = parent === null
+      ? "svg"
+      : `g#${parent.getId()}`;
+    const prefix = `${shape.getType()}#${shape.getId()}`;
+    const details = shape.describe().slice(prefix.length).trim();
+
+    return details === ""
+      ? `${prefix}  parent=${parentDescription}`
+      : `${prefix}  parent=${parentDescription}\n  ${details}`;
+  }
+
+  private appendTree(lines: string[], shape: Shape, depth: number): void {
     lines.push(`${"  ".repeat(depth)}${shape.describe()}`);
 
     if (shape instanceof Group) {

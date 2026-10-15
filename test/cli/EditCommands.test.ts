@@ -47,7 +47,9 @@ describe("editing commands", () => {
   it("reports invalid edit operations without creating history entries", () => {
     const runner = new CommandRunner(new Editor());
 
-    expect(runner.execute("undo")).toBe("error: nothing to undo");
+    expect(runner.execute("undo")).toBe(
+      "error: no document. use 'init' or 'read' first",
+    );
 
     runner.execute("init");
     runner.execute("create rect r1 10 20 30 40");
@@ -58,5 +60,20 @@ describe("editing commands", () => {
     expect(runner.execute("move missing 1 2")).toBe(
       "error: no such shape: missing",
     );
+  });
+
+  it("locks undo and redo after document commands until another edit", () => {
+    const runner = new CommandRunner(new Editor());
+
+    runner.execute("init");
+    expect(runner.execute("undo")).toBe(
+      "error: undo not allowed after io command",
+    );
+    expect(runner.execute("redo")).toBe(
+      "error: redo not allowed after io command",
+    );
+
+    runner.execute("create rect r1 0 0 10 10");
+    expect(runner.execute("undo")).toBe("undid last command");
   });
 });

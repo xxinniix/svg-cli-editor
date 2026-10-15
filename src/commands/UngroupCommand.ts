@@ -69,11 +69,16 @@ export class UngroupCommand implements EditorCommand {
     }
 
     if (!(shape instanceof Group)) {
-      throw new Error(`shape is not a group: ${this.groupId}`);
+      throw new Error(`cannot ungroup composite shape: ${this.groupId}`);
     }
 
     this.group = shape;
     this.parent = shape.getParent();
+
+    if (this.parent === null) {
+      throw new Error(`cannot ungroup top-level container: ${this.groupId}`);
+    }
+
     this.insertionIndex = this.parent === null
       ? this.document.getRootShapeIndex(shape)
       : this.parent.getChildren().indexOf(shape);

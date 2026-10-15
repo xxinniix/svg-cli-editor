@@ -178,4 +178,13 @@ export abstract class Shape {
       .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;");
   }
+
+  /** Avoid exposing binary floating-point noise in SVG files and CLI output. */
+  protected formatNumber(value: number): string {
+    if (Object.is(value, -0)) {
+      return "0";
+    }
+
+    return String(Number(value.toFixed(12)));
+  }
 }

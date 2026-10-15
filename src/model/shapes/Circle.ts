@@ -43,15 +43,15 @@ export class Circle extends Shape {
     }
 
     if (attribute === "cx") {
-      return String(this.cx);
+      return this.formatNumber(this.cx);
     }
 
     if (attribute === "cy") {
-      return String(this.cy);
+      return this.formatNumber(this.cy);
     }
 
     if (attribute === "r") {
-      return String(this.radius);
+      return this.formatNumber(this.radius);
     }
 
     throw new Error(`unknown attribute: ${attribute}`);
@@ -82,18 +82,18 @@ export class Circle extends Shape {
   public toSvg(): string {
     return [
       `<circle id="${this.escapeXml(this.getId())}"`,
-      `cx="${this.cx}"`,
-      `cy="${this.cy}"`,
-      `r="${this.radius}"${this.getSvgStyleAttributes()}/>`,
+      `cx="${this.formatNumber(this.cx)}"`,
+      `cy="${this.formatNumber(this.cy)}"`,
+      `r="${this.formatNumber(this.radius)}"${this.getSvgStyleAttributes()}/>`,
     ].join(" ");
   }
 
   public describe(): string {
     return [
       `circle#${this.getId()}`,
-      `cx=${this.cx}`,
-      `cy=${this.cy}`,
-      `r=${this.radius}${this.getStyleDescription()}`,
+      `cx=${this.formatNumber(this.cx)}`,
+      `cy=${this.formatNumber(this.cy)}`,
+      `r=${this.formatNumber(this.radius)}${this.getStyleDescription()}`,
     ].join(" ");
   }
 

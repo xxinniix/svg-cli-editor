@@ -71,8 +71,14 @@ export class SvgParser {
     this.requireAllowedAttributes(element);
 
     const id = this.readOrCreateId(element, context);
-    const parameters = this.readParameters(element);
-    const shape = this.shapeFactory.create(element.name, id, parameters);
+    const shape = this.shapeFactory.createFromSvg(
+      element.name,
+      id,
+      element.attributes,
+      this.shapeFactory.acceptsTextContent(element.name)
+        ? this.readTextContent(element)
+        : undefined,
+    );
 
     this.applyStyleAttributes(shape, element);
     document.addShape(shape, parent);
@@ -86,62 +92,25 @@ export class SvgParser {
         }
       }
 
+      this.applyGroupTransform(shape, element);
+
       return;
     }
 
-    this.requireLeafElement(element);
-  }
-
-  private readParameters(element: XmlElement): string[] {
-    switch (element.name) {
-      case "rect":
-        return [
-          this.requireAttribute(element, "x"),
-          this.requireAttribute(element, "y"),
-          this.requireAttribute(element, "width"),
-          this.requireAttribute(element, "height"),
-        ];
-
-      case "circle":
-        return [
-          this.requireAttribute(element, "cx"),
-          this.requireAttribute(element, "cy"),
-          this.requireAttribute(element, "r"),
-        ];
-
-      case "ellipse":
-        return [
-          this.requireAttribute(element, "cx"),
-          this.requireAttribute(element, "cy"),
-          this.requireAttribute(element, "rx"),
-          this.requireAttribute(element, "ry"),
-        ];
-
-      case "line":
-        return [
-          this.requireAttribute(element, "x1"),
-          this.requireAttribute(element, "y1"),
-          this.requireAttribute(element, "x2"),
-          this.requireAttribute(element, "y2"),
-        ];
-
-      case "text":
-        return [
-          this.requireAttribute(element, "x"),
-          this.requireAttribute(element, "y"),
-          this.readTextContent(element),
-        ];
-
-      case "g":
-        return [];
-
-      default:
-        throw new Error(`unsupported SVG element: <${element.name}>`);
-    }
+    this.requireLeafElement(
+      element,
+      this.shapeFactory.acceptsTextContent(element.name),
+    );
   }
 
   private applyStyleAttributes(shape: Shape, element: XmlElement): void {
-    for (const name of ["fill", "stroke", "stroke-width"]) {
+    for (const name of [
+      "fill",
+      "stroke",
+      "stroke-width",
+      "text-anchor",
+      "font-size",
+    ]) {
       const value = element.attributes.get(name);
 
       if (value !== undefined) {
@@ -156,7 +125,8 @@ export class SvgParser {
       "fill",
       "stroke",
       "stroke-width",
-      ...this.geometryAttributeNames(element.name),
+      ...this.shapeFactory.getSvgAttributeNames(element.name),
+      ...this.shapeFactory.getOptionalSvgAttributeNames(element.name),
     ]);
 
     for (const name of element.attributes.keys()) {
@@ -165,31 +135,6 @@ export class SvgParser {
           `unsupported attribute on <${element.name}>: ${name}`,
         );
       }
-    }
-  }
-
-  private geometryAttributeNames(type: string): string[] {
-    switch (type) {
-      case "rect":
-        return ["x", "y", "width", "height"];
-
-      case "circle":
-        return ["cx", "cy", "r"];
-
-      case "ellipse":
-        return ["cx", "cy", "rx", "ry"];
-
-      case "line":
-        return ["x1", "y1", "x2", "y2"];
-
-      case "text":
-        return ["x", "y"];
-
-      case "g":
-        return [];
-
-      default:
-        throw new Error(`unsupported SVG element: <${type}>`);
     }
   }
 
@@ -207,8 +152,11 @@ export class SvgParser {
     return this.decodeXml(pieces.join(""));
   }
 
-  private requireLeafElement(element: XmlElement): void {
-    if (element.name === "text") {
+  private requireLeafElement(
+    element: XmlElement,
+    acceptsTextContent: boolean,
+  ): void {
+    if (acceptsTextContent) {
       return;
     }
 
@@ -235,17 +183,17 @@ export class SvgParser {
     }
 
     let nextNumber = context.nextIds.get(element.name) ?? 1;
-    let generatedId = `${element.name}-${nextNumber}`;
+    let generatedId = `${element.name}${nextNumber}`;
 
     while (context.usedIds.has(generatedId)) {
       nextNumber += 1;
-      generatedId = `${element.name}-${nextNumber}`;
+      generatedId = `${element.name}${nextNumber}`;
     }
 
     context.nextIds.set(element.name, nextNumber + 1);
     this.claimId(generatedId, context);
     context.warnings.push(
-      `missing id on <${element.name}>; assigned ${generatedId}`,
+      `assigned id ${generatedId} to unnamed <${element.name}>`,
     );
 
     return generatedId;
@@ -277,6 +225,72 @@ export class SvgParser {
     }
 
     return value;
+  }
+
+  /**
+   * Normalizes the two group transforms described in the assignment into the
+   * editable model. The saved SVG contains the resulting geometry instead of
+   * retaining a hidden transform matrix.
+   */
+  private applyGroupTransform(group: Group, element: XmlElement): void {
+    const source = element.attributes.get("transform");
+
+    if (source === undefined) {
+      return;
+    }
+
+    const operations: Array<{ name: "translate" | "scale"; values: number[] }> = [];
+    const matcher = /(translate|scale)\s*\(([^)]*)\)/g;
+    let cursor = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = matcher.exec(source)) !== null) {
+      if (source.slice(cursor, match.index).trim() !== "") {
+        throw new Error(`unsupported transform on <g>: ${source}`);
+      }
+
+      const name = match[1];
+      const values = (match[2] ?? "")
+        .trim()
+        .split(/[\s,]+/)
+        .filter((value) => value !== "")
+        .map((value) => Number(value));
+
+      if (
+        (name !== "translate" && name !== "scale") ||
+        values.some((value) => !Number.isFinite(value))
+      ) {
+        throw new Error(`unsupported transform on <g>: ${source}`);
+      }
+
+      if (
+        (name === "translate" && (values.length < 1 || values.length > 2)) ||
+        (name === "scale" && values.length !== 1)
+      ) {
+        throw new Error(`unsupported transform on <g>: ${source}`);
+      }
+
+      operations.push({ name, values });
+      cursor = matcher.lastIndex;
+    }
+
+    if (operations.length === 0 || source.slice(cursor).trim() !== "") {
+      throw new Error(`unsupported transform on <g>: ${source}`);
+    }
+
+    for (const operation of [...operations].reverse()) {
+      const first = operation.values[0];
+
+      if (first === undefined) {
+        throw new Error(`unsupported transform on <g>: ${source}`);
+      }
+
+      if (operation.name === "scale") {
+        group.scale(first);
+      } else {
+        group.move(first, operation.values[1] ?? 0);
+      }
+    }
   }
 
   private parseXml(source: string): XmlElement[] {

@@ -37,17 +37,30 @@ describe("group command", () => {
     expect(svg.indexOf('id="g1"')).toBeLessThan(svg.indexOf('id="r2"'));
   });
 
-  it("rejects shapes from different parents", () => {
+  it("groups shapes from different parents", () => {
     const runner = new CommandRunner(new Editor());
 
     runner.execute("init");
     runner.execute("create g existing");
     runner.execute("create rect child 0 0 10 10");
     runner.execute("create rect root 20 0 10 10");
-    runner.execute("addto child existing");
+    runner.execute("addto existing child");
 
     expect(runner.execute("group g1 child root")).toBe(
-      "error: shapes must share the same parent",
+      "grouped 2 shape(s) as g1",
+    );
+    expect(runner.execute("show")).toContain('<g id="existing"><g id="g1">');
+  });
+
+  it("rejects selecting a group together with one of its descendants", () => {
+    const runner = new CommandRunner(new Editor());
+
+    runner.execute("init");
+    runner.execute("create g parent");
+    runner.execute("create rect child 0 0 10 10 in parent");
+
+    expect(runner.execute("group invalid parent child")).toBe(
+      "error: cannot group a container into its own descendant: parent",
     );
   });
 });

@@ -20,6 +20,14 @@ function createTemporaryFile(contents: string): {
 }
 
 describe("SvgFileStore.load", () => {
+  it("reports an unreadable file with a user-facing file path", () => {
+    const filePath = join(tmpdir(), "missing-svg-cli-file.svg");
+
+    expect(() => new SvgFileStore().load(filePath)).toThrow(
+      `cannot read file: ${filePath}`,
+    );
+  });
+
   it("loads nested shapes, styles, and escaped text", () => {
     const temporary = createTemporaryFile([
       '<?xml version="1.0" encoding="UTF-8"?>',
@@ -58,9 +66,47 @@ describe("SvgFileStore.load", () => {
       const result = new SvgFileStore().load(temporary.filePath);
 
       expect(result.warnings).toEqual([
-        "missing id on <circle>; assigned circle-1",
+        "assigned id circle1 to unnamed <circle>",
       ]);
-      expect(result.document.findShape("circle-1")?.getType()).toBe("circle");
+      expect(result.document.findShape("circle1")?.getType()).toBe("circle");
+    } finally {
+      rmSync(temporary.directory, { recursive: true, force: true });
+    }
+  });
+
+  it("normalizes supported group transforms into editable geometry", () => {
+    const temporary = createTemporaryFile([
+      '<svg width="400" height="200">',
+      '  <g id="scene" transform="translate(60,40) scale(0.5)">',
+      '    <rect id="r1" x="20" y="10" width="80" height="40"/>',
+      "  </g>",
+      "</svg>",
+    ].join("\n"));
+
+    try {
+      const result = new SvgFileStore().load(temporary.filePath);
+      const svg = result.document.toSvg();
+
+      expect(svg).toContain('x="70" y="45" width="40" height="20"');
+      expect(svg).not.toContain("transform=");
+    } finally {
+      rmSync(temporary.directory, { recursive: true, force: true });
+    }
+  });
+
+  it("preserves supported text typography when loading", () => {
+    const temporary = createTemporaryFile([
+      '<svg width="100" height="80">',
+      '  <text id="title" x="50" y="30" text-anchor="middle" font-size="16">End</text>',
+      "</svg>",
+    ].join("\n"));
+
+    try {
+      const result = new SvgFileStore().load(temporary.filePath);
+
+      expect(result.document.toSvg()).toContain(
+        'text-anchor="middle" font-size="16"',
+      );
     } finally {
       rmSync(temporary.directory, { recursive: true, force: true });
     }

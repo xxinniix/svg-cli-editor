@@ -4,14 +4,15 @@ import { Shape } from "../model/shapes/Shape.js";
 import type { EditorCommand } from "./EditorCommand.js";
 
 type ShapePosition = {
-  shape: Shape;
-  parent: Group | null;
-  index: number;
+  readonly shape: Shape;
+  readonly parent: Group | null;
+  readonly index: number;
 };
 
+/** Groups existing shapes, even when they currently belong to different groups. */
 export class GroupShapesCommand implements EditorCommand {
   private group: Group | null = null;
-  private parent: Group | null = null;
+  private groupParent: Group | null = null;
   private insertionIndex: number | null = null;
   private positions: ShapePosition[] = [];
 
@@ -36,7 +37,7 @@ export class GroupShapesCommand implements EditorCommand {
 
     this.document.restoreShape(
       this.group,
-      this.parent,
+      this.groupParent,
       this.insertionIndex,
     );
 
@@ -50,10 +51,7 @@ export class GroupShapesCommand implements EditorCommand {
   }
 
   public undo(): void {
-    if (
-      this.group === null ||
-      this.insertionIndex === null
-    ) {
+    if (this.group === null || this.insertionIndex === null) {
       throw new Error("group command has not been executed");
     }
 
@@ -63,7 +61,7 @@ export class GroupShapesCommand implements EditorCommand {
 
     this.document.removeShape(this.group.getId());
 
-    for (const position of this.positions) {
+    for (const position of this.restoreOrder()) {
       this.document.restoreShape(
         position.shape,
         position.parent,
@@ -95,29 +93,25 @@ export class GroupShapesCommand implements EditorCommand {
       return shape;
     });
 
+    this.rejectAncestorAndDescendantPair(shapes);
+
     const firstShape = shapes[0];
 
     if (firstShape === undefined) {
       throw new Error("group requires at least one shape id");
     }
 
-    const parent = firstShape.getParent();
+    this.positions = shapes.map((shape) => {
+      const parent = shape.getParent();
 
-    for (const shape of shapes) {
-      if (shape.getParent() !== parent) {
-        throw new Error("shapes must share the same parent");
-      }
-    }
-
-    this.positions = shapes
-      .map((shape) => ({
+      return {
         shape,
         parent,
         index: parent === null
           ? this.document.getRootShapeIndex(shape)
           : parent.getChildren().indexOf(shape),
-      }))
-      .sort((left, right) => left.index - right.index);
+      };
+    });
 
     const firstPosition = this.positions[0];
 
@@ -126,7 +120,34 @@ export class GroupShapesCommand implements EditorCommand {
     }
 
     this.group = new Group(this.groupId);
-    this.parent = parent;
+    this.groupParent = firstPosition.parent;
     this.insertionIndex = firstPosition.index;
+  }
+
+  private rejectAncestorAndDescendantPair(shapes: readonly Shape[]): void {
+    for (const possibleContainer of shapes) {
+      if (!(possibleContainer instanceof Group)) {
+        continue;
+      }
+
+      for (const possibleDescendant of shapes) {
+        if (possibleContainer.contains(possibleDescendant)) {
+          throw new Error(
+            `cannot group a container into its own descendant: ${possibleContainer.getId()}`,
+          );
+        }
+      }
+    }
+  }
+
+  /** Restore earlier sibling indices first for each original parent. */
+  private restoreOrder(): readonly ShapePosition[] {
+    return [...this.positions].sort((left, right) => {
+      if (left.parent !== right.parent) {
+        return 0;
+      }
+
+      return left.index - right.index;
+    });
   }
 }

@@ -52,19 +52,19 @@ export class Line extends Shape {
     }
 
     if (attribute === "x1") {
-      return String(this.x1);
+      return this.formatNumber(this.x1);
     }
 
     if (attribute === "y1") {
-      return String(this.y1);
+      return this.formatNumber(this.y1);
     }
 
     if (attribute === "x2") {
-      return String(this.x2);
+      return this.formatNumber(this.x2);
     }
 
     if (attribute === "y2") {
-      return String(this.y2);
+      return this.formatNumber(this.y2);
     }
 
     throw new Error(`unknown attribute: ${attribute}`);
@@ -101,19 +101,19 @@ export class Line extends Shape {
   public toSvg(): string {
     return [
       `<line id="${this.escapeXml(this.getId())}"`,
-      `x1="${this.x1}"`,
-      `y1="${this.y1}"`,
-      `x2="${this.x2}"`,
-      `y2="${this.y2}"${this.getSvgStyleAttributes()}/>`,
+      `x1="${this.formatNumber(this.x1)}"`,
+      `y1="${this.formatNumber(this.y1)}"`,
+      `x2="${this.formatNumber(this.x2)}"`,
+      `y2="${this.formatNumber(this.y2)}"${this.getSvgStyleAttributes()}/>`,
     ].join(" ");
   }
 
   public describe(): string {
     return [
       `line#${this.getId()}`,
-      `(${this.x1},${this.y1})`,
+      `(${this.formatNumber(this.x1)},${this.formatNumber(this.y1)})`,
       "->",
-      `(${this.x2},${this.y2})${this.getStyleDescription()}`,
+      `(${this.formatNumber(this.x2)},${this.formatNumber(this.y2)})${this.getStyleDescription()}`,
     ].join(" ");
   }
 

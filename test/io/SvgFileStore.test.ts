@@ -46,4 +46,12 @@ describe("SvgFileStore", () => {
       "file path must not be empty",
     );
   });
+
+  it("reports a write failure with a user-facing file path", () => {
+    const filePath = join(tmpdir(), "missing-svg-cli-directory", "drawing.svg");
+
+    expect(() => new SvgFileStore().save(new SvgDocument(100, 100), filePath)).toThrow(
+      `cannot write file: ${filePath}`,
+    );
+  });
 });

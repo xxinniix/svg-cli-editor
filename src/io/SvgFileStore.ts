@@ -11,7 +11,11 @@ export class SvgFileStore {
       throw new Error("file path must not be empty");
     }
 
-    writeFileSync(filePath, document.toSvg(), "utf8");
+    try {
+      writeFileSync(filePath, document.toSvg(), "utf8");
+    } catch {
+      throw new Error(`cannot write file: ${filePath}`);
+    }
   }
 
   public load(filePath: string): SvgParseResult {
@@ -24,7 +28,7 @@ export class SvgFileStore {
     try {
       source = readFileSync(filePath, "utf8");
     } catch {
-      throw new Error(`could not read file: ${filePath}`);
+      throw new Error(`cannot read file: ${filePath}`);
     }
 
     return this.parser.parse(source);

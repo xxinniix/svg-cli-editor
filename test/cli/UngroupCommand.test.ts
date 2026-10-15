@@ -7,11 +7,13 @@ describe("ungroup command", () => {
     const runner = new CommandRunner(new Editor());
 
     runner.execute("init");
+    runner.execute("create g outer");
     runner.execute("create g g1");
     runner.execute("create rect r1 10 20 30 40");
     runner.execute("create circle c1 100 100 20");
-    runner.execute("addto r1 g1");
-    runner.execute("addto c1 g1");
+    runner.execute("addto outer g1");
+    runner.execute("addto g1 r1");
+    runner.execute("addto g1 c1");
 
     expect(runner.execute("ungroup g1")).toBe("ungrouped g1");
     expect(runner.execute("show")).not.toContain('id="g1"');
@@ -32,8 +34,8 @@ describe("ungroup command", () => {
     runner.execute("create g outer");
     runner.execute("create g inner");
     runner.execute("create rect r1 10 20 30 40");
-    runner.execute("addto inner outer");
-    runner.execute("addto r1 inner");
+    runner.execute("addto outer inner");
+    runner.execute("addto inner r1");
 
     runner.execute("ungroup inner");
 
@@ -42,7 +44,7 @@ describe("ungroup command", () => {
     expect(svg).not.toContain('id="inner"');
   });
 
-  it("rejects missing shapes and non-group shapes", () => {
+  it("rejects invalid ungroup targets", () => {
     const runner = new CommandRunner(new Editor());
 
     runner.execute("init");
@@ -52,7 +54,12 @@ describe("ungroup command", () => {
       "error: no such shape: missing",
     );
     expect(runner.execute("ungroup r1")).toBe(
-      "error: shape is not a group: r1",
+      "error: cannot ungroup composite shape: r1",
+    );
+
+    runner.execute("create g root");
+    expect(runner.execute("ungroup root")).toBe(
+      "error: cannot ungroup top-level container: root",
     );
   });
 });

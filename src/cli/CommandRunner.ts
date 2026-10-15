@@ -107,11 +107,24 @@ export class CommandRunner {
 
     if (type === undefined || id === undefined) {
       throw new Error(
-        "usage: create <type> <id> <parameters...> [attribute=value ...]",
+        "usage: create <type> <id> [parameters...] [style] [in <containerId>]",
       );
     }
 
-    return this.editor.createShape(type, id, args.slice(2));
+    const remaining = args.slice(2);
+    const parentId = remaining[remaining.length - 1];
+    const hasParentClause = remaining.length >= 2 &&
+      remaining[remaining.length - 2] === "in";
+
+    if (!hasParentClause) {
+      return this.editor.createShape(type, id, remaining);
+    }
+
+    if (parentId === undefined) {
+      throw new Error("usage: create <type> <id> [parameters...] [style] [in <containerId>]");
+    }
+
+    return this.editor.createShape(type, id, remaining.slice(0, -2), parentId);
   }
 
   private handleMove(args: string[]): string {
@@ -180,18 +193,18 @@ export class CommandRunner {
     return this.editor.setShapeAttribute(id, attribute, value);
   }
   private handleAddTo(args: string[]): string {
-    const id = args[0];
-    const groupId = args[1];
+    const groupId = args[0];
+    const id = args[1];
 
     if (
       args.length !== 2 ||
       id === undefined ||
       groupId === undefined
     ) {
-      throw new Error("usage: addto <id> <groupId>");
+      throw new Error("usage: addto <groupId> <id>");
     }
 
-    return this.editor.addShapeToGroup(id, groupId);
+    return this.editor.addShapeToGroup(groupId, id);
   }
     private handleGroup(args: string[]): string {
     const groupId = args[0];
@@ -214,25 +227,31 @@ export class CommandRunner {
   }
 
   private handleShow(args: string[]): string {
-    if (args.length !== 0) {
-      throw new Error("usage: show");
+    if (args.length === 0) {
+      return this.editor.showSvg();
     }
 
-    return this.editor.showSvg();
+    const id = args[0];
+
+    if (args.length !== 1 || id === undefined) {
+      throw new Error("usage: show <id>");
+    }
+
+    return this.editor.showShape(id);
   }
-   private handleTree(args: string[]): string {
-    if (args.length !== 0) {
-      throw new Error("usage: tree");
+  private handleTree(args: string[]): string {
+    if (args.length > 1) {
+      throw new Error("usage: tree [id]");
     }
 
-    return this.editor.showTree();
+    return this.editor.showTree(args[0]);
   }
 
   private handleSave(args: string[]): string {
     const filePath = args[0];
 
-    if (args.length !== 1 || filePath === undefined) {
-      throw new Error("usage: save <file>");
+    if (args.length > 1) {
+      throw new Error("usage: save [file]");
     }
 
     return this.editor.save(filePath);
@@ -345,19 +364,19 @@ export class CommandRunner {
       "  init [width] [height]",
       "  read <file>",
       "  canvas [width] [height]",
-      "  create <type> <id> <parameters...> [attribute=value ...]",
+      "  create <type> <id> [parameters...] [style] [in <containerId>]",
       "  delete <id>",
       "  set <id> <attribute> <value>",
       "  group <newGroupId> <id...>",
       "  ungroup <groupId>",
-      "  addto <id> <groupId>",
+      "  addto <groupId> <id>",
       "  move <id> <dx> <dy>",
       "  scale <id> <factor>",
       "  front <id>",
       "  back <id>",
-      "  save <file>",
-      "  show",
-      "  tree",
+      "  save [file]",
+      "  show <id>",
+      "  tree [id]",
       "  undo",
       "  redo",
       "  help",

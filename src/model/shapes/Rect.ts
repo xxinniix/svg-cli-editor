@@ -46,19 +46,19 @@ export class Rect extends Shape {
     }
 
     if (attribute === "x") {
-      return String(this.x);
+      return this.formatNumber(this.x);
     }
 
     if (attribute === "y") {
-      return String(this.y);
+      return this.formatNumber(this.y);
     }
 
     if (attribute === "width") {
-      return String(this.width);
+      return this.formatNumber(this.width);
     }
 
     if (attribute === "height") {
-      return String(this.height);
+      return this.formatNumber(this.height);
     }
 
     throw new Error(`unknown attribute: ${attribute}`);
@@ -95,20 +95,20 @@ export class Rect extends Shape {
   public toSvg(): string {
     return [
       `<rect id="${this.escapeXml(this.getId())}"`,
-      `x="${this.x}"`,
-      `y="${this.y}"`,
-      `width="${this.width}"`,
-      `height="${this.height}"${this.getSvgStyleAttributes()}/>`,
+      `x="${this.formatNumber(this.x)}"`,
+      `y="${this.formatNumber(this.y)}"`,
+      `width="${this.formatNumber(this.width)}"`,
+      `height="${this.formatNumber(this.height)}"${this.getSvgStyleAttributes()}/>`,
     ].join(" ");
   }
 
   public describe(): string {
     return [
       `rect#${this.getId()}`,
-      `x=${this.x}`,
-      `y=${this.y}`,
-      `w=${this.width}`,
-      `h=${this.height}${this.getStyleDescription()}`,
+      `x=${this.formatNumber(this.x)}`,
+      `y=${this.formatNumber(this.y)}`,
+      `w=${this.formatNumber(this.width)}`,
+      `h=${this.formatNumber(this.height)}${this.getStyleDescription()}`,
     ].join(" ");
   }
 

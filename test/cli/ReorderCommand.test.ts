@@ -36,8 +36,8 @@ describe("front and back commands", () => {
     runner.execute("create g g1");
     runner.execute("create rect r1 0 0 10 10");
     runner.execute("create rect r2 20 0 10 10");
-    runner.execute("addto r1 g1");
-    runner.execute("addto r2 g1");
+    runner.execute("addto g1 r1");
+    runner.execute("addto g1 r2");
 
     expect(runner.execute("back r2")).toBe("sent r2 to back");
 

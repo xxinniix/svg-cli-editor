@@ -1,6 +1,9 @@
 import { Shape } from "./Shape.js";
 
 export class Text extends Shape {
+  private textAnchor: string | undefined;
+  private fontSize: number | undefined;
+
   public constructor(
     id: string,
     private x: number,
@@ -41,15 +44,25 @@ export class Text extends Shape {
     }
 
     if (attribute === "x") {
-      return String(this.x);
+      return this.formatNumber(this.x);
     }
 
     if (attribute === "y") {
-      return String(this.y);
+      return this.formatNumber(this.y);
     }
 
     if (attribute === "text") {
       return this.content;
+    }
+
+    if (attribute === "text-anchor") {
+      return this.textAnchor;
+    }
+
+    if (attribute === "font-size") {
+      return this.fontSize === undefined
+        ? undefined
+        : this.formatNumber(this.fontSize);
     }
 
     throw new Error(`unknown attribute: ${attribute}`);
@@ -75,18 +88,43 @@ export class Text extends Shape {
       return;
     }
 
+    if (attribute === "text-anchor") {
+      if (value.trim() === "") {
+        throw new Error("text-anchor must not be empty");
+      }
+
+      this.textAnchor = value;
+      return;
+    }
+
+    if (attribute === "font-size") {
+      const parsed = Number(value);
+      this.requirePositive(parsed, "font-size");
+      this.fontSize = parsed;
+      return;
+    }
+
     throw new Error(`unknown attribute: ${attribute}`);
   }
 
   public toSvg(): string {
-    return `<text id="${this.escapeXml(this.getId())}" x="${this.x}" y="${this.y}"${this.getSvgStyleAttributes()}>${this.escapeXml(this.content)}</text>`;
+    const typography = [
+      this.textAnchor === undefined
+        ? ""
+        : ` text-anchor="${this.escapeXml(this.textAnchor)}"`,
+      this.fontSize === undefined
+        ? ""
+        : ` font-size="${this.formatNumber(this.fontSize)}"`,
+    ].join("");
+
+    return `<text id="${this.escapeXml(this.getId())}" x="${this.formatNumber(this.x)}" y="${this.formatNumber(this.y)}"${typography}${this.getSvgStyleAttributes()}>${this.escapeXml(this.content)}</text>`;
   }
 
   public describe(): string {
     return [
       `text#${this.getId()}`,
-      `(${this.x},${this.y})`,
-      `"${this.content}"${this.getStyleDescription()}`,
+      `(${this.formatNumber(this.x)},${this.formatNumber(this.y)})`,
+      `"${this.content}"${this.getTypographyDescription()}${this.getStyleDescription()}`,
     ].join(" ");
   }
 
@@ -94,5 +132,43 @@ export class Text extends Shape {
     const parsed = Number(value);
     this.requireFinite(parsed, name);
     return parsed;
+  }
+
+  public override restoreAttribute(
+    attribute: string,
+    value: string | undefined,
+  ): void {
+    if (attribute === "text-anchor") {
+      this.textAnchor = value;
+      return;
+    }
+
+    if (attribute === "font-size") {
+      if (value === undefined) {
+        this.fontSize = undefined;
+        return;
+      }
+
+      const parsed = Number(value);
+      this.requirePositive(parsed, "font-size");
+      this.fontSize = parsed;
+      return;
+    }
+
+    super.restoreAttribute(attribute, value);
+  }
+
+  private getTypographyDescription(): string {
+    const descriptions: string[] = [];
+
+    if (this.textAnchor !== undefined) {
+      descriptions.push(`text-anchor=${this.textAnchor}`);
+    }
+
+    if (this.fontSize !== undefined) {
+      descriptions.push(`font-size=${this.formatNumber(this.fontSize)}`);
+    }
+
+    return descriptions.length === 0 ? "" : ` ${descriptions.join(" ")}`;
   }
 }
