@@ -35,6 +35,8 @@ npm run build
 | 编辑命令 | `src/commands/` | 后续实现 Command 模式：每条编辑命令的执行、撤销和重做 |
 | SVG 读写 | `src/io/` | 后续负责 SVG XML 的读取、自动补 id 与序列化保存 |
 | 测试 | `test/` | 单元测试、命令回归测试和 SVG 读写测试 |
+- `src/io/SvgFileStore.ts`：负责以 UTF-8 保存和读取 SVG 文件。
+- `src/io/SvgParser.ts`：负责将受支持的 SVG 元素、属性、文字和嵌套分组解析为 `SvgDocument`，与 CLI 和模型层分离。
 
 当前已实现 `cli`、`app` 与 `model` 的最小骨架；`commands`、`io` 会在对应功能开始前创建，避免空目录和无用代码。
 
@@ -121,6 +123,7 @@ model -> 无其他业务模块
 19. 实现 `tree` 命令。由 `SvgDocument` 递归调用图形的多态 `describe()` 方法输出文档树；该功能不依赖类型标签分支来格式化基础图形。
 20. 实现 `front` 和 `back` 图层顺序命令。它们只重排图形在当前父容器中的同级位置，并通过 Command 模式保存原索引，因此可以正确撤销与重做。
 21. 实现 `save <file>`：新增 `SvgFileStore` 负责 UTF-8 文件写入，`Editor` 协调文档与存储服务，CLI 负责参数校验。为保存、覆盖保存、空路径、无文档和错误参数编写了自动化测试，并手工检查了实际生成的 SVG 文件。
+22. 实现 `read <file>`：将 XML 解析独立为 `SvgParser`，仅支持本项目要求的 `rect`、`circle`、`ellipse`、`line`、`text` 和 `g`，并重建嵌套分组与样式。读取成功后替换文档并清空撤销历史；读取失败则保留原文档。缺失图形 ID 时自动生成 ID 并输出警告。
 
 ## 一致性自查
 
@@ -145,9 +148,9 @@ model -> 无其他业务模块
 当前已完成的保障：
 
 - `npm run build` 使用 TypeScript 严格检查并已通过。
-- Vitest 已覆盖 5 种基础图形、组合图形 `Group`、`SvgDocument`、`ShapeFactory`、SVG 文件保存、CLI 命令和 Command 模式的 SVG 序列化、规范 SVG 根节点、树结构查看、移动缩放、属性校验、嵌套结构、全局 ID 唯一性、创建、删除、图形位置恢复、属性修改、加入分组、创建与取消分组、图层顺序、循环结构保护、撤销重做、带引号文本、保存覆盖与错误处理，共 58 个自动化测试。
+- Vitest 已覆盖 5 种基础图形、组合图形 `Group`、`SvgDocument`、`ShapeFactory`、SVG 文件保存与读取、CLI 命令和 Command 模式的 SVG 序列化、规范 SVG 根节点、SVG 解析、树结构查看、移动缩放、属性校验、嵌套结构、全局 ID 唯一性、缺失 ID 自动生成、创建、删除、图形位置恢复、属性修改、加入分组、创建与取消分组、图层顺序、循环结构保护、撤销重做、带引号文本、保存覆盖、读取失败保持原文档与错误处理，共 64 个自动化测试。
 - `tsconfig.test.json` 会对 `src/` 与 `test/` 一起进行独立类型检查，避免编辑器遗漏测试代码中的导入错误。
-- 手工验证了 `init`、`canvas`、`create`、带引号文本、`set`、属性格式错误不改变文档、`show`、`tree`、`save`、生成 SVG 文件内容、规范 SVG 根节点、`move`、`scale`、`delete`、`addto`、`group`、`ungroup`、`front`、`back`、`undo`、`redo`、无文档错误、错误参数、`#` 注释行和 `exit`。
+- 手工验证了 `init`、`canvas`、`create`、带引号文本、`set`、属性格式错误不改变文档、`show`、`tree`、`save`、`read`、保存后读取并恢复分组/样式/文字、生成 SVG 文件内容、规范 SVG 根节点、`move`、`scale`、`delete`、`addto`、`group`、`ungroup`、`front`、`back`、`undo`、`redo`、无文档错误、错误参数、`#` 注释行和 `exit`。
 - 每个阶段都使用 Git 小步提交并推送远程仓库。
 
 后续保障措施：

@@ -25,6 +25,17 @@ export class Editor {
     this.history = new CommandHistory();
     return `canvas ${width}x${height} created`;
   }
+    public read(filePath: string): string {
+    const result = this.fileStore.load(filePath);
+
+    this.document = result.document;
+    this.history = new CommandHistory();
+
+    return [
+      `loaded ${filePath}`,
+      ...result.warnings.map((warning) => `warning: ${warning}`),
+    ].join("\n");
+  }
 
   public showCanvas(): string {
     const document = this.getDocument();

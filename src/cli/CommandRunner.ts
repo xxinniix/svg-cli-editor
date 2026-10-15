@@ -8,6 +8,7 @@ export class CommandRunner {
   public constructor(private readonly editor: Editor) {
     this.handlers.set("help", () => this.help());
     this.handlers.set("init", (args) => this.handleInit(args));
+    this.handlers.set("read", (args) => this.handleRead(args));
     this.handlers.set("canvas", (args) => this.handleCanvas(args));
     this.handlers.set("create", (args) => this.handleCreate(args));
     this.handlers.set("delete", (args) => this.handleDelete(args));
@@ -67,6 +68,15 @@ export class CommandRunner {
       this.parseDimension(widthText),
       this.parseDimension(heightText),
     );
+  }
+    private handleRead(args: string[]): string {
+    const filePath = args[0];
+
+    if (args.length !== 1 || filePath === undefined) {
+      throw new Error("usage: read <file>");
+    }
+
+    return this.editor.read(filePath);
   }
 
   private handleCanvas(args: string[]): string {
@@ -333,6 +343,7 @@ export class CommandRunner {
     return [
       "Available commands:",
       "  init [width] [height]",
+      "  read <file>",
       "  canvas [width] [height]",
       "  create <type> <id> <parameters...> [attribute=value ...]",
       "  delete <id>",

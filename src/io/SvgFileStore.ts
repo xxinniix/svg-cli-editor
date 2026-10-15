@@ -1,12 +1,32 @@
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { SvgDocument } from "../model/SvgDocument.js";
+import { SvgParser } from "./SvgParser.js";
+import type { SvgParseResult } from "./SvgParser.js";
 
 export class SvgFileStore {
+  private readonly parser = new SvgParser();
+
   public save(document: SvgDocument, filePath: string): void {
     if (filePath.trim() === "") {
       throw new Error("file path must not be empty");
     }
 
     writeFileSync(filePath, document.toSvg(), "utf8");
+  }
+
+  public load(filePath: string): SvgParseResult {
+    if (filePath.trim() === "") {
+      throw new Error("file path must not be empty");
+    }
+
+    let source: string;
+
+    try {
+      source = readFileSync(filePath, "utf8");
+    } catch {
+      throw new Error(`could not read file: ${filePath}`);
+    }
+
+    return this.parser.parse(source);
   }
 }
