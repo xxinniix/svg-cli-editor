@@ -134,7 +134,25 @@ export class SvgDocument {
     lines.push("</svg>");
     return lines.join("\n");
   }
+    public describeTree(): string {
+    const lines = [`svg ${this.width}x${this.height}`];
 
+    for (const shape of this.rootShapes) {
+      this.appendTree(lines, shape, 1);
+    }
+
+    return lines.join("\n");
+  }
+
+    private appendTree(lines: string[], shape: Shape, depth: number): void {
+    lines.push(`${"  ".repeat(depth)}${shape.describe()}`);
+
+    if (shape instanceof Group) {
+      for (const child of shape.getChildren()) {
+        this.appendTree(lines, child, depth + 1);
+      }
+    }
+  }
   private findInTree(shape: Shape, id: string): Shape | undefined {
     if (shape.getId() === id) {
       return shape;

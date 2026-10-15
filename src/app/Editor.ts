@@ -116,6 +116,9 @@ export class Editor {
   public showSvg(): string {
     return this.getDocument().toSvg();
   }
+    public showTree(): string {
+    return this.getDocument().describeTree();
+  }
 
   private applyAttribute(shape: Shape, token: string): void {
     const equalsIndex = token.indexOf("=");

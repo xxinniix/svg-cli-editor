@@ -18,6 +18,7 @@ export class CommandRunner {
     this.handlers.set("move", (args) => this.handleMove(args));
     this.handlers.set("scale", (args) => this.handleScale(args));
     this.handlers.set("show", (args) => this.handleShow(args));
+    this.handlers.set("tree", (args) => this.handleTree(args));
     this.handlers.set("undo", (args) => this.handleUndo(args));
     this.handlers.set("redo", (args) => this.handleRedo(args));
   }
@@ -206,6 +207,13 @@ export class CommandRunner {
 
     return this.editor.showSvg();
   }
+    private handleTree(args: string[]): string {
+    if (args.length !== 0) {
+      throw new Error("usage: tree");
+    }
+
+    return this.editor.showTree();
+  }
 
   private handleUndo(args: string[]): string {
     if (args.length !== 0) {
@@ -310,6 +318,7 @@ export class CommandRunner {
       "  move <id> <dx> <dy>",
       "  scale <id> <factor>",
       "  show",
+      "  tree",
       "  undo",
       "  redo",
       "  help",

@@ -118,6 +118,7 @@ model -> 无其他业务模块
 16. 实现 `addto` 命令及其 Command 对象，使图形可以移动到已有分组中，并支持撤销和重做。实现中额外校验目标必须是分组，并防止将分组移动到自身的后代中形成循环。
 17. 实现 `group` 命令及其 Command 对象。分组前会检查图形 ID 不重复、所有待分组图形属于同一父容器，并记录原父容器和顺序，使撤销/重做能够恢复正确的树结构。
 18. 实现 `ungroup` 命令及其 Command 对象。取消分组时会将直接子图形按原顺序放回原父容器；撤销时会重新创建原来的分组层级，重做时再次展开。
+19. 实现 `tree` 命令。由 `SvgDocument` 递归调用图形的多态 `describe()` 方法输出文档树；该功能不依赖类型标签分支来格式化基础图形。
 
 ## 一致性自查
 
@@ -142,9 +143,9 @@ model -> 无其他业务模块
 当前已完成的保障：
 
 - `npm run build` 使用 TypeScript 严格检查并已通过。
-- Vitest 已覆盖 5 种基础图形、组合图形 `Group`、`SvgDocument`、`ShapeFactory`、CLI 命令和 Command 模式的 SVG 序列化、规范 SVG 根节点、移动缩放、属性校验、嵌套结构、全局 ID 唯一性、创建、删除、图形位置恢复、属性修改、加入分组、创建与取消分组、循环结构保护、撤销重做、带引号文本与错误处理，共 46 个自动化测试。
+- Vitest 已覆盖 5 种基础图形、组合图形 `Group`、`SvgDocument`、`ShapeFactory`、CLI 命令和 Command 模式的 SVG 序列化、规范 SVG 根节点、树结构查看、移动缩放、属性校验、嵌套结构、全局 ID 唯一性、创建、删除、图形位置恢复、属性修改、加入分组、创建与取消分组、循环结构保护、撤销重做、带引号文本与错误处理，共 49 个自动化测试。
 - `tsconfig.test.json` 会对 `src/` 与 `test/` 一起进行独立类型检查，避免编辑器遗漏测试代码中的导入错误。
-- 手工验证了 `init`、`canvas`、`create`、带引号文本、`set`、属性格式错误不改变文档、`show`、规范 SVG 根节点、`move`、`scale`、`delete`、`addto`、`group`、`ungroup`、`undo`、`redo`、无文档错误、错误参数、`#` 注释行和 `exit`。
+- 手工验证了 `init`、`canvas`、`create`、带引号文本、`set`、属性格式错误不改变文档、`show`、`tree`、规范 SVG 根节点、`move`、`scale`、`delete`、`addto`、`group`、`ungroup`、`undo`、`redo`、无文档错误、错误参数、`#` 注释行和 `exit`。
 - 每个阶段都使用 Git 小步提交并推送远程仓库。
 
 后续保障措施：
