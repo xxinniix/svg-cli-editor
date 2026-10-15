@@ -10,6 +10,8 @@ import { SetAttributeCommand } from "../commands/SetAttributeCommand.js";
 import { MoveToGroupCommand } from "../commands/MoveToGroupCommand.js";
 import { GroupShapesCommand } from "../commands/GroupShapesCommand.js";
 import { UngroupCommand } from "../commands/UngroupCommand.js";
+import { ReorderShapeCommand } from "../commands/ReorderShapeCommand.js";
+import type { ReorderPlacement } from "../commands/ReorderShapeCommand.js";
 
 export class Editor {
   private document: SvgDocument | null = null;
@@ -95,6 +97,16 @@ export class Editor {
     const document = this.getDocument();
     this.history.execute(new UngroupCommand(document, groupId));
     return `ungrouped ${groupId}`;
+  }
+    public reorderShape(id: string, placement: ReorderPlacement): string {
+    const document = this.getDocument();
+    this.history.execute(
+      new ReorderShapeCommand(document, id, placement),
+    );
+
+    return placement === "front"
+      ? `brought ${id} to front`
+      : `sent ${id} to back`;
   }
 
   public undo(): string {

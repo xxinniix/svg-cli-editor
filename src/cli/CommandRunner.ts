@@ -15,6 +15,8 @@ export class CommandRunner {
     this.handlers.set("addto", (args) => this.handleAddTo(args));
     this.handlers.set("group", (args) => this.handleGroup(args));
     this.handlers.set("ungroup", (args) => this.handleUngroup(args));
+    this.handlers.set("front", (args) => this.handleReorder(args, "front"));
+    this.handlers.set("back", (args) => this.handleReorder(args, "back"));
     this.handlers.set("move", (args) => this.handleMove(args));
     this.handlers.set("scale", (args) => this.handleScale(args));
     this.handlers.set("show", (args) => this.handleShow(args));
@@ -222,6 +224,18 @@ export class CommandRunner {
 
     return this.editor.undo();
   }
+    private handleReorder(
+    args: string[],
+    placement: "front" | "back",
+  ): string {
+    const id = args[0];
+
+    if (args.length !== 1 || id === undefined) {
+      throw new Error(`usage: ${placement} <id>`);
+    }
+
+    return this.editor.reorderShape(id, placement);
+  }
 
   private handleRedo(args: string[]): string {
     if (args.length !== 0) {
@@ -317,6 +331,8 @@ export class CommandRunner {
       "  addto <id> <groupId>",
       "  move <id> <dx> <dy>",
       "  scale <id> <factor>",
+      "  front <id>",
+      "  back <id>",
       "  show",
       "  tree",
       "  undo",
