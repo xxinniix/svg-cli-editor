@@ -12,11 +12,13 @@ import { GroupShapesCommand } from "../commands/GroupShapesCommand.js";
 import { UngroupCommand } from "../commands/UngroupCommand.js";
 import { ReorderShapeCommand } from "../commands/ReorderShapeCommand.js";
 import type { ReorderPlacement } from "../commands/ReorderShapeCommand.js";
+import { SvgFileStore } from "../io/SvgFileStore.js";
 
 export class Editor {
   private document: SvgDocument | null = null;
   private history = new CommandHistory();
   private readonly shapeFactory = new ShapeFactory();
+    private readonly fileStore = new SvgFileStore();
 
   public initialize(width = 800, height = 600): string {
     this.document = new SvgDocument(width, height);
@@ -130,6 +132,11 @@ export class Editor {
   }
     public showTree(): string {
     return this.getDocument().describeTree();
+  }
+    public save(filePath: string): string {
+    const document = this.getDocument();
+    this.fileStore.save(document, filePath);
+    return `saved ${filePath}`;
   }
 
   private applyAttribute(shape: Shape, token: string): void {
