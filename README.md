@@ -1,4 +1,4 @@
-# PJ1 Phase 1：TypeScript CLI SVG 编辑器
+# TypeScript CLI SVG editor
 
 ## 项目概述
 
